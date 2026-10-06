@@ -1,6 +1,8 @@
 import React, { useState, useMemo, type ChangeEvent } from 'react';
 import { evaluarEstudiante, type ResultadoEvaluacion } from './evaluacion';
 
+/* ---------- Reglas de entrada de notas ---------- */
+
 const NOTA_MAXIMA = 20;
 const DECIMALES_PERMITIDOS = /^\d*\.?\d{0,2}$/;
 
@@ -17,15 +19,6 @@ function sanitizarNota(valor: string): string {
   return limpio;
 }
 
-const estiloInput: React.CSSProperties = {
-  width: '100%',
-  padding: '0.5rem',
-  borderRadius: '6px',
-  border: '1px solid #d1d5db',
-  fontSize: '1rem',
-  boxSizing: 'border-box',
-};
-
 export const CalculadoraNotas: React.FC = () => {
   const [b1, setB1] = useState<string>('');
   const [b2, setB2] = useState<string>('');
@@ -41,94 +34,113 @@ export const CalculadoraNotas: React.FC = () => {
     return evaluarEstudiante(numB1, numB2);
   }, [numB1, numB2, datosValidos]);
 
-  const getColorEstado = () => {
-    if (!resultado) return '#6b7280';
-    switch (resultado.estado) {
-      case 'APROBADO_DIRECTO':
-      case 'APROBADO_SUPLETORIO':
-        return '#16a34a'; // Verde
-      case 'REPROBADO_SIN_DERECHO':
-      case 'REPROBADO_SUPLETORIO':
-        return '#dc2626'; // Rojo
-      case 'PENDIENTE_SUPLETORIO':
-        return '#d97706'; // Ámbar/Naranja
-    }
-  };
+  const esAprobado =
+    resultado?.estado === 'APROBADO_DIRECTO' ||
+    resultado?.estado === 'APROBADO_SUPLETORIO';
 
   return (
-    <div style={{
-      maxWidth: '480px',
-      margin: '2rem auto',
-      padding: '1.5rem',
-      borderRadius: '12px',
-      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-      backgroundColor: '#ffffff',
-      fontFamily: 'system-ui, -apple-system, sans-serif',
-      color: '#1f2937'
-    }}>
-      <h2 style={{ textAlign: 'center', marginBottom: '1.5rem', color: '#111827' }}>
-        Calculadora de Calificaciones
-      </h2>
-
-      {/* Inputs Bimestres */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
-        <div>
-          <label htmlFor="b1" style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.25rem' }}>
-            Bimestre 1:
-          </label>
-          <input
-            id="b1"
-            type="text"
-            inputMode="decimal"
-            value={b1}
-            onChange={(e: ChangeEvent<HTMLInputElement>) => setB1(sanitizarNota(e.target.value))}
-            placeholder="Ej. 14"
-            style={estiloInput}
-          />
-        </div>
-
-        <div>
-          <label htmlFor="b2" style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, marginBottom: '0.25rem' }}>
-            Bimestre 2:
-          </label>
-          <input
-            id="b2"
-            type="text"
-            inputMode="decimal"
-            value={b2}
-            onChange={(e: ChangeEvent<HTMLInputElement>) => setB2(sanitizarNota(e.target.value))}
-            placeholder="Ej. 14"
-            style={estiloInput}
-          />
-        </div>
-      </div>
-
-      <small style={{ display: 'block', marginBottom: '1rem', color: '#6b7280' }}>
-        Las notas van de 0 a {NOTA_MAXIMA}.
-      </small>
-
-      {/* Panel de Resultados */}
-      {resultado && (
-        <div style={{
-          marginTop: '1.5rem',
-          padding: '1.25rem',
-          borderRadius: '8px',
-          backgroundColor: '#f9fafb',
-          borderLeft: `5px solid ${getColorEstado()}`
-        }}>
-          <h3 style={{ margin: '0 0 0.5rem 0', color: getColorEstado(), fontSize: '1.1rem' }}>
-            {resultado.mensajePrincipal}
-          </h3>
-          <p style={{ margin: '0.25rem 0', fontSize: '0.9rem', color: '#4b5563' }}>
-            <strong>Sumatoria de bimestres:</strong> {resultado.sumaBimestres} puntos
+    <div className="pagina">
+      <main className="tarjeta">
+        {/* Encabezado */}
+        <header className="encabezado">
+          <span className="etiqueta-sistema">
+            <span className="punto" />
+            Sistema de evaluación
+          </span>
+          <h1 className="titulo">Calculadora de notas y supletorio</h1>
+          <p className="subtitulo">
+            Registra las notas de los dos bimestres del semestre para
+            determinar si apruebas la materia, si tienes derecho a rendir el
+            examen supletorio y qué nota necesitas para aprobarlo.
           </p>
-          {resultado.supletorio.tieneDerechoSupletorio && (
-            <p style={{ margin: '0.25rem 0', fontSize: '0.9rem', color: '#4b5563' }}>
-              <strong>Nota mínima en supletorio:</strong> {resultado.supletorio.notaMinimaRequerida} puntos
+        </header>
+
+        {/* Notas del semestre */}
+        <section className="seccion">
+          <h2 className="titulo-seccion">Notas del semestre</h2>
+
+          <div className="campos">
+            <div>
+              <label className="campo-label" htmlFor="b1">
+                Nota del primer bimestre
+              </label>
+              <input
+                id="b1"
+                className="campo-input"
+                type="text"
+                inputMode="decimal"
+                value={b1}
+                onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                  setB1(sanitizarNota(e.target.value))
+                }
+                placeholder="14.00"
+              />
+            </div>
+
+            <div>
+              <label className="campo-label" htmlFor="b2">
+                Nota del segundo bimestre
+              </label>
+              <input
+                id="b2"
+                className="campo-input"
+                type="text"
+                inputMode="decimal"
+                value={b2}
+                onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                  setB2(sanitizarNota(e.target.value))
+                }
+                placeholder="14.00"
+              />
+            </div>
+          </div>
+
+          <p className="nota-ayuda">
+            Rango válido 0 – {NOTA_MAXIMA} · 2 decimales
+          </p>
+        </section>
+
+        {/* Resultado */}
+        <section className="seccion">
+          <h2 className="titulo-seccion">Resultado de la evaluación</h2>
+
+          {!resultado ? (
+            <p className="vacio">
+              Completa las dos notas para ver tu resultado.
             </p>
+          ) : (
+            <div className={`panel${esAprobado ? ' aprobado' : ''}`}>
+              <p className="panel-mensaje">{resultado.mensajePrincipal}</p>
+
+              <dl className="resumen">
+                <div className="resumen-fila">
+                  <dt className="resumen-termino">Sumatoria</dt>
+                  <dd className="resumen-valor">
+                    {resultado.sumaBimestres} pts
+                  </dd>
+                </div>
+
+                {resultado.supletorio.tieneDerechoSupletorio && (
+                  <div className="resumen-fila">
+                    <dt className="resumen-termino">
+                      Nota mínima en supletorio
+                    </dt>
+                    <dd className="resumen-valor">
+                      {resultado.supletorio.notaMinimaRequerida} pts
+                    </dd>
+                  </div>
+                )}
+              </dl>
+            </div>
           )}
-        </div>
-      )}
+        </section>
+      </main>
+
+      <p className="pie">
+        Cada bimestre se aprueba con <strong>14</strong> puntos. El acceso al
+        supletorio requiere <strong>18</strong> puntos entre ambos bimestres y
+        la nota mínima para aprobarlo es <strong>24</strong>.
+      </p>
     </div>
   );
 };
